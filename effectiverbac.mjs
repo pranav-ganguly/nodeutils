@@ -190,3 +190,5 @@ class User {
   get userName() { return this.userName; }
   get roles() { return this.roles; }
 }
+
+export { Permission, Role, Target, User, authorizeUser };

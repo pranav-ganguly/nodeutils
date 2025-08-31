@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "a collection of nodejs based utilities",
   "main": "nodeutils.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
