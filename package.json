@@ -1,0 +1,19 @@
+{
+  "name": "nodeutils",
+  "version": "1.0.0",
+  "description": "a collection of nodejs based utilities",
+  "main": "nodeutils.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pranav-ganguly/nodeutils.git"
+  },
+  "author": "pranav-ganguly",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pranav-ganguly/nodeutils/issues"
+  },
+  "homepage": "https://github.com/pranav-ganguly/nodeutils#readme"
+}
