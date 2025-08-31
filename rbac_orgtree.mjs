@@ -32,6 +32,71 @@ class Permission {
   static ALL = "ALL"
 }
 
+// Target represents the node on which actions can be performed. The actions are defined by verbs in Permission class
+// Target can be at different levels of hierarchy: tenant, workspace, job, discussion
+// Target is defined by a targetSignature in the format tenant/workspace/job/discussion
+// where workspace, job, discussion can be wildcard (*) to represent all objects at that level
+// e.g. tenant/*/*/* represents all objects under the tenant
+// e.g. tenant/workspace/*/* represents all objects under the workspace
+// e.g. tenant/workspace/job/* represents all discussions under the job
+// e.g. tenant/workspace/job/discussion represents the specific discussion
+class Target {
+  constructor(tenant, workspace, job, discussion) {
+    if(!tenant) throw new Error("Tenant must be provided");
+    this.tenant = tenant; // required
+    this.workspace = workspace; // optional
+    this.job = job; // optional
+    this.discussion = discussion; // optional
+    // set targetSignature based on provided params in the format tenant/workspace/job/discussion
+    this.targetSignature = tenant + "/" + (workspace ? workspace : "*") + "/" + (job ? job : "*") + "/" + (discussion ? discussion : "*");
+  }
+  get tenant() { return this.tenant; }
+  get workspace() { return this.workspace; }
+  get job() { return this.job; }
+  get discussion() { return this.discussion; }
+  get targetSignature() { return this.targetSignature; }
+  
+  loadChildren() {
+    /**
+     * return an array of Target instances representing child objects of the node
+     * load all child objects from DB or API, given the tenant, workspace, job, disscussion values
+     * if only tenant is provided, load all workspaces, jobs and discussions under the tenant
+     * if tenant and workspace is provided, load all jobs and discussions under the workspace
+     * if tenant, workspace and object is provided, load discussions under the object
+     * if tenant, workspace, object and discussion is provided, return empty array as there are no children
+     **/
+    let childObjects = []; // TODO: implement
+    /**
+     * mockup of expected output:
+     */
+    childObjects.push(new Target(this.tenant, "*", "*", "*")); // ACME/*/*/*
+    childObjects.push(new Target(this.tenant, "marketing", "*", "*")); // ACME/marketing/*/*
+    childObjects.push(new Target(this.tenant, "marketing", "job789", "*")); // ACME/marketing/job789/*
+    childObjects.push(new Target(this.tenant, "marketing", "job789", "interview1")); // ACME/marketing/job789/interview1
+    childObjects.push(new Target(this.tenant, "marketing", "job789", "interview2"));
+    childObjects.push(new Target(this.tenant, "marketing", "job789", "hrfeedback"));   
+    childObjects.push(new Target(this.tenant, "engineering", "*", "*"));
+    childObjects.push(new Target(this.tenant, "engineering", "job123", "*"));
+    childObjects.push(new Target(this.tenant, "engineering", "job123", "discussion456"));
+    return childObjects;
+
+  }
+}
+
+// User class represents a user in the system with a unique userId and an array of roles. 
+// This shoud be populated from DB or API and cached in session
+class User {
+  constructor(userId, userName, roles=[]) {
+    if(!userId) throw new Error("userId must be provided");
+    this.userId = userId;
+    this.userName = userName;
+    this.roles = roles; // array of Role instances
+  }
+  get userId() { return this.userId; }
+  get userName() { return this.userName; }
+  get roles() { return this.roles; }
+}
+
 // Role is the association class joining User, target and permissions
 class Role {
   constructor(roleId, roleName, roleDescription, target, permissions=[]){
@@ -77,9 +142,9 @@ class Role {
     } 
     if(!verb) {
       throw new Error("verb must be provided");
-    } else if(verb!=Permission.verb_CREATE && verb!=Permission.verb_READ && 
-      verb!=Permission.verb_UPDATE && verb!=Permission.verb_DELETE && 
-      verb!=Permission.verb_SHARE && verb!=Permission.verb_ALL) {
+    } else if(verb!=Permission.CREATE && verb!=Permission.READ && 
+      verb!=Permission.UPDATE && verb!=Permission.DELETE && 
+      verb!=Permission.SHARE && verb!=Permission.ALL) {
         throw new Error("Invalid verb: " + verb +". Must be one of CREATE, READ, UPDATE, DELETE, SHARE, ALL");
     }
     // start authorization logic, set targetMatch to false initially
@@ -97,57 +162,13 @@ class Role {
     return targetMatch && this.permissions.find(p => p === permission);
   }
 }
-  
+/**
+ * Sample role
+ * let role1 = new Role("admin", "Client Admin", "Manages the whole org", new Target("ACME"), [Permission.ALL]);
+ */
 
-// Target represents the node on which actions can be performed. The actions are defined by verbs in Permission class
-// Target can be at different levels of hierarchy: tenant, workspace, job, discussion
-// Target is defined by a targetSignature in the format tenant/workspace/job/discussion
-// where workspace, job, discussion can be wildcard (*) to represent all objects at that level
-// e.g. tenant/*/*/* represents all objects under the tenant
-// e.g. tenant/workspace/*/* represents all objects under the workspace
-// e.g. tenant/workspace/job/* represents all discussions under the job
-// e.g. tenant/workspace/job/discussion represents the specific discussion
-class Target {
-  constructor(tenant, workspace, job, discussion) {
-    if(!tenant) throw new Error("Tenant must be provided");
-    this.tenant = tenant; // required
-    this.workspace = workspace; // optional
-    this.job = job; // optional
-    this.discussion = discussion; // optional
-    // set targetSignature based on provided params in the format tenant/workspace/job/discussion
-    this.targetSignature = tenant + "/" + (workspace ? workspace : "*") + "/" + (job ? job : "*") + "/" + (discussion ? discussion : "*");
-  }
-  get tenant() { return this.tenant; }
-  get workspace() { return this.workspace; }
-  get job() { return this.job; }
-  get discussion() { return this.discussion; }
-  get targetSignature() { return this.targetSignature; }
-  
-  loadChildren() {
-    /**
-     * return an array of Target instances representing child objects of the node
-     * load all child objects from DB or API, given the tenant, workspace, job, disscussion values
-     * if only tenant is provided, load all workspaces, jobs and discussions under the tenant
-     * if tenant and workspace is provided, load all jobs and discussions under the workspace
-     * if tenant, workspace and object is provided, load discussions under the object
-     * if tenant, workspace, object and discussion is provided, return empty array as there are no children
-     **/
-    let childObjects = []; // TODO: implement
-    /**
-     * mockup of expected output:
-     */
-    childObjects.push(new Target(this.tenant, "marketing", "*", "*"));
-    childObjects.push(new Target(this.tenant, "marketing", "job789", "*")); 
-    childObjects.push(new Target(this.tenant, "marketing", "job789", "interview1"));
-    childObjects.push(new Target(this.tenant, "marketing", "job789", "interview2"));
-    childObjects.push(new Target(this.tenant, "marketing", "job789", "hrfeedback"));   
-    childObjects.push(new Target(this.tenant, "engineering", "*", "*"));
-    childObjects.push(new Target(this.tenant, "engineering", "job123", "*"));
-    childObjects.push(new Target(this.tenant, "engineering", "job123", "discussion456"));
-    return childObjects;
 
-  }
-}
+// RBACUtil is a simple wrapper over the static utility method for RBAC authorization
 class RBACUtil {
  static authorizeUser(user, permission, target) {
     // input validation
@@ -178,18 +199,6 @@ class RBACUtil {
   }
 }
 
-// User class represents a user in the system with a unique userId and an array of roles. 
-// This shoud be populated from DB or API and cached in session
-class User {
-  constructor(userId, userName, roles=[]) {
-    if(!userId) throw new Error("userId must be provided");
-    this.userId = userId;
-    this.userName = userName;
-    this.roles = roles; // array of Role instances
-  }
-  get userId() { return this.userId; }
-  get userName() { return this.userName; }
-  get roles() { return this.roles; }
-}
+
 
 export { Permission, Role, Target, User, RBACUtil };
