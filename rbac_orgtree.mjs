@@ -148,33 +148,34 @@ class Target {
 
   }
 }
-
-function authorizeUser(user, permission, target) {
-  // input validation
-  if(!user) {
-    throw new Error("user must be provided");
-  } else if(!(user instanceof User)){
-      throw new Error("user must be an instance of User");
-  } 
-  if(!target) {
-    throw new Error("target must be provided");
-  } else if(!(target instanceof Target)){
-      throw new Error("target must be an instance of Target");
-  } 
-  if(!permission) {
-    throw new Error("permission must be provided");
-  } else if(permission!=Permission.CREATE && permission!=Permission.READ && 
-    permission!=Permission.UPDATE && permission!=Permission.DELETE && 
-    permission!=Permission.SHARE && permission!=Permission.ALL) {
-      throw new Error("Invalid permission: " + permission +". Must be one of CREATE, READ, UPDATE, DELETE, SHARE, ALL");
-  }
-  // start authorization logic, iterate through user's roles and check if any role authorizes the action on the target
-  for(let role of user.roles) {
-    if(role.authorize(permission, target)) {
-      return true; // authorized
+class RBACUtil {
+ static authorizeUser(user, permission, target) {
+    // input validation
+    if(!user) {
+      throw new Error("user must be provided");
+    } else if(!(user instanceof User)){
+        throw new Error("user must be an instance of User");
+    } 
+    if(!target) {
+      throw new Error("target must be provided");
+    } else if(!(target instanceof Target)){
+        throw new Error("target must be an instance of Target");
+    } 
+    if(!permission) {
+      throw new Error("permission must be provided");
+    } else if(permission!=Permission.CREATE && permission!=Permission.READ && 
+      permission!=Permission.UPDATE && permission!=Permission.DELETE && 
+      permission!=Permission.SHARE && permission!=Permission.ALL) {
+        throw new Error("Invalid permission: " + permission +". Must be one of CREATE, READ, UPDATE, DELETE, SHARE, ALL");
     }
+    // start authorization logic, iterate through user's roles and check if any role authorizes the action on the target
+    for(let role of user.roles) {
+      if(role.authorize(permission, target)) {
+        return true; // authorized
+      }
+    }
+    return false; // not authorized
   }
-  return false; // not authorized
 }
 
 // User class represents a user in the system with a unique userId and an array of roles. 
@@ -191,4 +192,4 @@ class User {
   get roles() { return this.roles; }
 }
 
-export { Permission, Role, Target, User, authorizeUser };
+export { Permission, Role, Target, User, RBACUtil };
