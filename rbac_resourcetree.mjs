@@ -173,7 +173,7 @@ class RBACDemo {
       "IngenEngineeringHiringManager", 
       "Hiring Manager role with read, write and delete permissions for InGen Engineering workspace", 
       new Target("InGen", "Engineering", "job789"), 
-      [Permission.READ, Permission.WRITE, Permission.DELETE]
+      [Permission.READ, Permission.CREATE, Permission.UPDATE, Permission.DELETE]
     );
     let ingenEnggTAM = new Role(
       "IngenEnggTAM", 
@@ -187,14 +187,14 @@ class RBACDemo {
       "IngenInterviewer", 
       "Interviewer role with read and write permissions for InGen Engineering workspace", 
       new Target("InGen", "Engineering", "job789", "Interview1"), 
-      [Permission.READ, Permission.WRITE]
+      [Permission.READ, Permission.UPDATE]
     );
     let ingenInterviewer2 = new Role(
       "IngenInterviewer", 
       "IngenInterviewer", 
       "Interviewer role with read and write permissions for InGen Engineering workspace", 
       new Target("InGen", "Engineering", "job789", "Interview2"), 
-      [Permission.READ, Permission.WRITE]
+      [Permission.READ, Permission.UPDATE]
     );
 
     let anita = new User("anita", "Anita", [ingenEnggHM]);
@@ -214,6 +214,7 @@ class RBACDemo {
       RBACUtil.authorizeUser(bala, Permission.DELETE, new Target("InGen", "HR", "job555", "discussion999"))); // true
     console.log("Is Deepak allowed to UPDATE InGen/HR/job555/discussion999? " + 
       RBACUtil.authorizeUser(deepak, Permission.UPDATE, new Target("InGen", "HR", "job555", "discussion999")));
+      
   }
 }
 
